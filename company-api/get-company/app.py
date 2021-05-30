@@ -4,7 +4,7 @@ import json
 def handler(event: dict, context: dict):
 
     response = {"statusCode": 204, "body": "No results found"}
-    table = 'learn-api-dynamo-database'
+    table = 'rest-dynamo-database'
     
     print(event)
 
