@@ -33,4 +33,4 @@ def authenticate_and_get_token(username: str, password: str,
     print(response['AuthenticationResult']['IdToken'])
 
 
-authenticate_and_get_token('netengineersam96@gmail.com', 'mabuto19961', 'us-east-1_B2qO0CoSG', '6dtakjj3a7rok3gsmbf23nu6r6')
+authenticate_and_get_token('sinamile@gmail.com', 'sinamile123', 'eu-central-1_QuOiWaPvS', '21f6k7usgcmcsocgcsj2l0l94c')
