@@ -1,0 +1,1 @@
+https://learn-api.auth.eu-west-1.amazoncognito.com/changePassword?client_id=552jjcjasfp54v1pjfo4l8uhmb&response_type=code&scope=phone+email+openid+aws.cognito.signin.user.admin+profile&redirect_uri=https://mgas.ke/

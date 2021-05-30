@@ -1,0 +1,185 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Learning API'
+Parameters:
+  AppCode:
+    Type: String
+  EnvironmentType:
+    Type: String
+  VPCName:
+    Type: String
+Globals:
+  Function:
+    Runtime: python3.8
+    Timeout: 840
+    MemorySize: 512
+    Tracing: Active
+    Layers:
+      - !Ref UtilsLayers
+
+Resources:
+  
+  UtilsLayers:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+        LayerName: !Sub ${AppCode}-learnLayer
+        Description: Custom Lambda Layer
+        ContentUri: layers/
+        CompatibleRuntimes:
+            - python3.8
+            - python3.7
+        RetentionPolicy: Delete
+    Metadata:
+        BuildMethod: python3.8
+  
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: 
+              - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Description: AIM policy for Analytics Refresh 
+      Path: /
+      Policies:
+        - PolicyName: !Sub ${AppCode}-lambda-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:BatchGetItem
+                  - dynamodb:BatchWriteItem
+                Resource: 
+                  - !GetAtt LearningTable.Arn
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - logs:*
+                Resource: '*'
+      RoleName: !Sub ${AppCode}-lambda-role
+      Tags:
+        - Key: kt:environment-type
+          Value: !Sub ${EnvironmentType}
+        - Key: kt:application
+          Value: !Sub ${AppCode}
+        - Key: kt:appversion
+          Value: V0.1
+
+  LearningTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: companyName
+        AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+      - AttributeName: companyName
+        KeyType: HASH
+      TableName: !Sub ${AppCode}-dynamo-database
+  
+  LearnCognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+      Schema:
+        - AttributeDataType: String
+          Name: email
+          Required: true
+      UserPoolName: learn-pool
+      UsernameAttributes:
+        - email
+  
+  LearnUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref LearnCognitoUserPool
+      GenerateSecret: false
+  
+  api:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub ${AppCode}-test-api
+      StageName:
+        Ref: EnvironmentType
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt LearnCognitoUserPool.Arn
+            OAuthScopes:
+              - email
+        UsagePlan:
+          CreateUsagePlan: PER_API
+          UsagePlanName:
+            Fn::Sub: ${AppCode}-usagePlan
+        ApiKeyRequired: false
+      Cors:
+        AllowOrigin: "'*'"
+        AllowMethods: "'OPTIONS,HEAD,GET,PUT,POST'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+  GetCompany:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AppCode}-GetCompany
+      CodeUri: get-company/
+      Handler: app.handler
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        GetCompany:
+          Type: Api
+          Properties:
+            Path: /test/get-company
+            Method: get
+            RestApiId: !Ref api
+  ListCompanies:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${AppCode}-ListCompanies
+      CodeUri: list-companies/
+      Handler: app.handler
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        ListCompaniesAPI:
+          Type: Api
+          Properties:
+            Path: /test/list-companies
+            Method: get
+            RestApiId: !Ref api
+  PostCompany:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${AppCode}-PostCompany
+      CodeUri: post-company/
+      Handler: app.handler
+      Role: !GetAtt LambdaRole.Arn
+      Events:
+        PostCompanyAPI:
+          Type: Api
+          Properties:
+            Path: /test/post-company
+            Method: post
+            RestApiId: !Ref api
