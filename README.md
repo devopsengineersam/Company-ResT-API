@@ -6,9 +6,9 @@ The aim is to provide a public API on AWS that enables a user
 Request and save company information (e.g. company Name, Legal Entity
 Number of employees, Share Capital ). Here is an example of the data:
 Company Name Legal Entity Number of employees Share Capital
-BMW AG 13000 800000
-Commerzbank AG 14000 500000
-Example Company GmbH 300 50000
+BMW              AG            13000             800000
+Commerzbank      AG            14000             500000
+Example Company  GmbH          300               50000
 
 
 tasks
