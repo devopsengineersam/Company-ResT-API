@@ -4,7 +4,7 @@ import json
 def handler(event: dict, context: dict):
 
     response = {"statusCode": 201, "body": "Data Added"}
-    table = 'learn-api-dynamo-database'
+    table = 'rest-dynamo-database'
 
     if 'body' not in event:
 
