@@ -8,13 +8,13 @@ def handler(event: dict, context: dict):
     
     
 
-    comapanies =  dynamo.litsItems()
+    companies =  dynamo.litsItems()
 
-    if len(comapanies) == 0 or comapanies is None:
+    if len(companies) == 0 or companies is None:
         return response
     
     response['statusCode'] = 200
-    response['body'] = json.dumps(comapanies)
+    response['body'] = json.dumps(companies)
     return response
  
     
