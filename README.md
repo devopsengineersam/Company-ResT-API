@@ -14,3 +14,5 @@ sam validate  # to validate the yaml file
 sam build  # to build the project
 
 sam deploy --guided --capabilities CAPABILITY_NAMED_IAM  # deploy the code to cloudformation
+
+added some readme
