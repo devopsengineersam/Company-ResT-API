@@ -1,3 +1,4 @@
+#sample
 import boto3
 import logging
 from boto3.dynamodb.conditions import Key
